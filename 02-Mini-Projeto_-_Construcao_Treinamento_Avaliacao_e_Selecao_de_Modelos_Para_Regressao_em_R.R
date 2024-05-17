@@ -67,6 +67,18 @@ library(e1071)          # algoritmo SVM
 # -> valor_total_gasto               : Valor total gasto pelo cliente em um mês em R$ (float64).
 
 
+## IMPORTANTE:
+
+# - Analisando nossos dados, definimos a variável "valor_total_gasto" como nossa variável alvo.
+# - Para este projeto, não queremos apenas prever o valor; queremos estudar o relacionamento entre as variáveis.
+# - Isso será uma entrega adicional do modelo de Machine Learning.
+
+# - Internamente, os modelos de Machine Learning fazem relacionamentos entre os dados. Portanto, é exatamente esse relacionamento que será usado para resolver o
+#   problema de negócio.
+# - Vamos criar um modelo que será capaz de realizar previsões. No entanto, nosso foco não será as previsões, mas sim o relacionamento que o modelo encontrou durante
+#   seu aprendizado.
+# - Esta é uma característica/propriedade dos modelos de Machine Learning que nos permite resolver ainda mais problemas de negócio.
+
 
 
 
@@ -140,7 +152,12 @@ rm(analise_inicial)
 
 
 
+
+
+
 ## Análise 1 - Relação Entre Tempo no Web Site e Valor Gasto
+
+
 
 
 
@@ -150,7 +167,11 @@ rm(analise_inicial)
 
 
 
+
+
 ## Análise 3 - Relação Entre Tempo na App e Tempo de Cadastro
+
+
 
 
 
@@ -160,7 +181,12 @@ rm(analise_inicial)
 
 
 
+
+
 ## Análise 5 - Relação Entre Tempo Logado na App e Tempo Logado no Web Site
+
+
+
 
 
 
