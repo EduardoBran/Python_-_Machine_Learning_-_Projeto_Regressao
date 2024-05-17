@@ -12,6 +12,7 @@ library(dplyr)          # manipula dados
 library(tidyr)          # manipula dados (funcao pivot_longer)
 library(ROSE)           # balanceamento de dados
 library(ggplot2)        # gera gráficos
+library(GGally)         # gera gráficos
 library(patchwork)      # unir gráficos
 library(corrplot)       # mapa de correlação
 
@@ -150,15 +151,45 @@ rm(analise_inicial)
 
 ## CORRELAÇÃO
 
+# Verificando Correlação (Tabela)
+cor(df, use = "complete.obs")
 
+# Verificando Correlação (através de matriz de gráficos de dispersão (scatter plots))
+pairs(df, main = "Matriz de Gráficos de Dispersão")
+
+# Verificando Correlação através de um Mapa de Calor
+corrplot(cor(df, use = "complete.obs"),
+         method = "color",
+         type = "upper",
+         addCoef.col = 'springgreen2',
+         tl.col = "black",
+         tl.srt = 45)  
 
 
 
 
 ## Análise 1 - Relação Entre Tempo no Web Site e Valor Gasto
 
+# Criando o gráfico de dispersão com histogramas marginais
+ggplot(data = df, aes(x = tempo_total_logado_website, y = valor_total_gasto)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = 'lm', col = 'red') +  # linha de tendência
+  ggtitle("Relação Entre Tempo no Web Site e Valor Gasto") +
+  theme_minimal() +
+  theme(text = element_text(size = 16))
 
+# Detalhe dos Gráficos:
 
+# - O gráfico de dispersão sugere que não há uma correlação evidente entre tempo_total_logado_website e valor_total_gasto, pois os pontos estão espalhados de forma
+#   aleatória e não seguem uma tendência clara.
+# - Vamos confirmar calculando o coeficiente de correlação entre elas abaixo.
+
+# Correlação (tabela)
+cor(df[, c("tempo_total_logado_website", "valor_total_gasto")], use = "complete.obs")
+
+# Conclusão:
+
+# - Não parece haver correlação entre o tempo logado no web site e o valor gasto pelos clientes.
 
 
 
