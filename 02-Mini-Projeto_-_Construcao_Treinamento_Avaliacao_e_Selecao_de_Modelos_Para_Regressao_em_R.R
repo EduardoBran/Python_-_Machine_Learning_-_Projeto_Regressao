@@ -69,18 +69,105 @@ library(e1071)          # algoritmo SVM
 
 
 
+
 #### Carregando os Dados
+df <- data.frame(read.csv("dados/dataset.csv", stringsAsFactors = FALSE))
+
+dim(df)
+names(df)
+head(df)
+
+
+
+#### Análise Exploratória
+
+# Tipo de dados
+str(df)
+
+
+## Realizando Análise Inicial (Sumário Estatístico, Veriricação de Valores NA, '' e especiais)
+
+analise_inicial <- function(dataframe_recebido) {
+  # Sumário
+  cat("\n\n####  DIMENSÕES  ####\n\n")
+  print(dim(dataframe_recebido))
+  cat("\n\n\n####  INFO  ####\n\n")
+  print(str(dataframe_recebido))
+  cat("\n\n\n####  SUMÁRIO  ####\n\n")
+  print(summary(dataframe_recebido))
+  cat("\n\n\n####  VERIFICANDO QTD DE LINHAS DUPLICADAS  ####\n\n")
+  print(sum(duplicated(dataframe_recebido)))
+  cat("\n\n\n####  VERIFICANDO VALORES NA  ####\n\n")
+  valores_na <- colSums(is.na(dataframe_recebido))
+  if(any(valores_na > 0)) {
+    cat("\n-> Colunas com valores NA:\n\n")
+    print(valores_na[valores_na > 0])
+  } else {
+    cat("\n-> Não foram encontrados valores NA.\n")
+  }
+  cat("\n\n\n####  VERIFICANDO VALORES VAZIOS ''  ####\n\n")
+  valores_vazios <- sapply(dataframe_recebido, function(x) sum(x == "", na.rm = TRUE)) # Adicionando na.rm = TRUE
+  if(any(valores_vazios > 0, na.rm = TRUE)) { # Tratamento de NA na condição
+    cat("\n-> Colunas com valores vazios \"\":\n\n")
+    print(valores_vazios[valores_vazios > 0])
+  } else {
+    cat("\n-> Não foram encontrados valores vazios \"\".\n")
+  }
+  cat("\n\n\n####  VERIFICANDO VALORES COM CARACTERES ESPECIAIS  ####\n\n")
+  caracteres_especiais <- sapply(dataframe_recebido, function(x) {
+    sum(sapply(x, function(y) {
+      if(is.character(y) && length(y) == 1) {
+        any(charToRaw(y) > 0x7E | charToRaw(y) < 0x20)
+      } else {
+        FALSE
+      }
+    }))
+  })
+  if(any(caracteres_especiais > 0)) {
+    cat("\n-> Colunas com caracteres especiais:\n\n")
+    print(caracteres_especiais[caracteres_especiais > 0])
+  } else {
+    cat("\n-> Não foram encontrados caracteres especiais.\n")
+  }
+}
+
+analise_inicial(df)
+rm(analise_inicial)
+
+
+
+## CORRELAÇÃO
+
+
+
+## Análise 1 - Relação Entre Tempo no Web Site e Valor Gasto
+
+
+
+
+## Análise 2 - Relação Entre Tempo na App e Valor Gasto
+
+
+
+
+## Análise 3 - Relação Entre Tempo na App e Tempo de Cadastro
+
+
+
+
+## Análise 4 - Relação Entre Tempo de Cadastro e Valor Gasto
+
+
+
+
+## Análise 5 - Relação Entre Tempo Logado na App e Tempo Logado no Web Site
 
 
 
 
 
 
-
-
-
-
-
+#### Pré-Processamento de Dados Para Construção de Modelos de Machine Learning
 
 
 
