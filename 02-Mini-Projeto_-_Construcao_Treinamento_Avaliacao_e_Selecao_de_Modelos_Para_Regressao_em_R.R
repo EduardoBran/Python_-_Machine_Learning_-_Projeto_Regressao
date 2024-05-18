@@ -187,14 +187,37 @@ ggplot(data = df, aes(x = tempo_total_logado_website, y = valor_total_gasto)) +
 # Correlação (tabela)
 cor(df[, c("tempo_total_logado_website", "valor_total_gasto")], use = "complete.obs")
 
-# Conclusão:
+
+## Conclusão:
 
 # - Não parece haver correlação entre o tempo logado no web site e o valor gasto pelos clientes.
 
 
 
+
+
 ## Análise 2 - Relação Entre Tempo na App e Valor Gasto
 
+# Criando o gráfico de dispersão com histogramas marginais
+ggplot(data = df, aes(x = tempo_total_logado_app, y = valor_total_gasto)) +
+  geom_point(color = "darkgreen") +
+  geom_smooth(method = 'lm', col = 'red') +  # linha de tendência
+  ggtitle("Relação Entre Tempo na App e Valor Gasto") +
+  theme_minimal() +
+  theme(text = element_text(size = 16))
+
+# Detalhe dos Gráficos:
+
+# - O gráfico de dispersão mostra uma correlação moderada positiva entre tempo_total_logado_app e valor_total_gasto. Os pontos no gráfico tendem a formar um padrão
+#   mais concentrado, sugerindo que, à medida que o tempo logado no aplicativo aumenta, o valor total gasto também tende a aumentar.
+
+# Correlação (tabela)
+cor(df[, c("tempo_total_logado_app", "valor_total_gasto")], use = "complete.obs")
+
+## Conclusão:
+
+# - Há uma correlação moderada positiva entre o tempo total logado no aplicativo e o valor total gasto pelos clientes, com um coeficiente de correlação de 0.499328.
+#   Isso indica que aumentar o tempo que os clientes passam no aplicativo pode estar associado a um aumento no valor gasto.
 
 
 
@@ -202,6 +225,27 @@ cor(df[, c("tempo_total_logado_website", "valor_total_gasto")], use = "complete.
 
 ## Análise 3 - Relação Entre Tempo na App e Tempo de Cadastro
 
+# Criando o gráfico de dispersão com histogramas marginais
+ggplot(data = df, aes(x = tempo_total_logado_app, y = tempo_cadastro_cliente)) +
+  geom_point(color = "darkgreen") +
+  geom_smooth(method = 'lm', col = 'red') +  # linha de tendência
+  ggtitle("Relação Entre Tempo na App e Tempo de Cadastro") +
+  theme_minimal() +
+  theme(text = element_text(size = 16))
+
+
+# Detalhe dos Gráficos:
+
+# - O gráfico de dispersão mostra que não há uma correlação clara entre tempo_total_logado_app e tempo_cadastro_cliente. Os pontos estão espalhados de forma
+#   relativamente uniforme e aleatória, sem formar um padrão específico.
+
+# Correlação (tabela)
+cor(df[, c("tempo_total_logado_app", "tempo_cadastro_cliente")], use = "complete.obs")
+
+## Conclusão:
+
+# - Não parece haver uma correlação significativa entre o tempo total logado no aplicativo e o tempo de cadastro do cliente, com um coeficiente de correlação
+#   de 0.029143. Isso indica que o tempo que os clientes passam no aplicativo não está diretamente relacionado com o tempo que eles estão cadastrados na plataforma.
 
 
 
@@ -209,6 +253,28 @@ cor(df[, c("tempo_total_logado_website", "valor_total_gasto")], use = "complete.
 
 ## Análise 4 - Relação Entre Tempo de Cadastro e Valor Gasto
 
+# Criando o gráfico de dispersão com histogramas marginais
+ggplot(data = df, aes(x = tempo_cadastro_cliente, y = valor_total_gasto)) +
+  geom_point(color = "darkgreen") +
+  geom_smooth(method = 'lm', col = 'red') +  # linha de tendência
+  ggtitle("Relação Entre Tempo de Cadastro e Valor Gasto") +
+  theme_minimal() +
+  theme(text = element_text(size = 16))
+
+# Detalhe dos Gráficos:
+
+# - O gráfico de dispersão mostra uma clara tendência positiva entre tempo_cadastro_cliente e valor_total_gasto. Conforme o tempo de cadastro do cliente aumenta,
+#   o valor total gasto também tende a aumentar. A linha de tendência azul confirma essa correlação positiva, indicando uma relação linear significativa entre as
+#   duas variáveis.
+
+# Correlação (tabela)
+cor(df[, c("tempo_cadastro_cliente", "valor_total_gasto")], use = "complete.obs")
+
+## Conclusão:
+
+# - Há uma forte correlação positiva (coeficiente de correlação de 0.809084) entre o tempo de cadastro do cliente e o valor total gasto. Isso sugere que clientes que
+#   estão cadastrados há mais tempo tendem a gastar mais. Esta informação é valiosa para a empresa, indicando que investimentos em estratégias de retenção de clientes
+#   podem ser eficazes para aumentar as vendas.
 
 
 
@@ -216,7 +282,27 @@ cor(df[, c("tempo_total_logado_website", "valor_total_gasto")], use = "complete.
 
 ## Análise 5 - Relação Entre Tempo Logado na App e Tempo Logado no Web Site
 
+# Criando o gráfico de dispersão com histogramas marginais
+ggplot(data = df, aes(x = tempo_total_logado_app, y = tempo_total_logado_website)) +
+  geom_point(color = "darkgreen") +
+  geom_smooth(method = 'lm', col = 'red') +  # linha de tendência
+  ggtitle("Relação Entre Tempo Logado na App e Tempo Logado no Web Site") +
+  theme_minimal() +
+  theme(text = element_text(size = 16))
 
+# Detalhe dos Gráficos:
+
+# - O gráfico de dispersão entre tempo_total_logado_app e tempo_total_logado_website mostra pontos distribuídos de maneira bastante aleatória, sem uma tendência clara.
+#   Isso sugere que não há uma correlação forte entre essas duas variáveis.
+
+# Correlação (tabela)
+
+
+## Conclusão:
+
+# - A correlação entre tempo_total_logado_app e tempo_total_logado_website é muito baixa (coeficiente de correlação de 0.082388). Isso indica que o tempo que os
+#   clientes passam logados no app não está fortemente relacionado com o tempo que passam logados no website. Essa informação pode sugerir que os usuários tendem a
+#  utilizar um dos canais (app ou website) mais frequentemente do que o outro, sem uma relação significativa entre os tempos de uso.
 
 
 
