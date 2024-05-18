@@ -312,6 +312,47 @@ ggplot(data = df, aes(x = tempo_total_logado_app, y = tempo_total_logado_website
 
 #### Pré-Processamento de Dados Para Construção de Modelos de Machine Learning
 
+##  Dividindo os dados em treino e teste
+set.seed(100)
+indices <- createDataPartition(df$valor_total_gasto, p = 0.70, list = FALSE)
+dados_treino <- df[indices, ]
+dados_teste <- df[-indices, ]
+rm(indices)
+
+
+## Padronização
+
+# Padronizado Dados de Treino
+summary(dados_treino)
+
+# Calculando a média e o desvio padrão dos dados de treino 
+treino_mean <- sapply(dados_treino[, -which(names(dados_treino) == "valor_total_gasto")], mean, na.rm = TRUE)
+treino_std <- sapply(dados_treino[, -which(names(dados_treino) == "valor_total_gasto")], sd, na.rm = TRUE)
+
+# Exibindo a média e o desvio padrão
+print(treino_mean)
+print(treino_std)
+
+# Padronizando todas as variáveis, exceto 'Target'
+dados_treino[, names(treino_mean)] <- sweep(dados_treino[, names(treino_mean)], 2, treino_mean, "-")
+dados_treino[, names(treino_std)] <- sweep(dados_treino[, names(treino_std)], 2, treino_std, "/")
+
+summary(dados_treino)
+
+
+# Padronizado Dados de Teste
+summary(dados_teste)
+
+# Padronizando os dados de teste usando a média e desvio padrão dos dados de treino
+dados_teste[, names(treino_mean)] <- sweep(dados_teste[, names(treino_mean)], 2, treino_mean, "-")
+dados_teste[, names(treino_std)] <- sweep(dados_teste[, names(treino_std)], 2, treino_std, "/")
+
+summary(dados_teste)
+rm(treino_mean, treino_std)
+
+
+
+#### Construindo Modelos de Machine Learning
 
 
 
