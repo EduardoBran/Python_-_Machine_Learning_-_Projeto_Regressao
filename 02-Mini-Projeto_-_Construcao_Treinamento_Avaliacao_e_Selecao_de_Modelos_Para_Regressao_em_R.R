@@ -354,5 +354,159 @@ rm(treino_mean, treino_std)
 
 #### Construindo Modelos de Machine Learning
 
+# Nesta etapa do projeto, desenvolveremos e avaliaremos três diferentes modelos de machine learning para identificar qual deles apresenta o melhor desempenho para
+# o nosso conjunto de dados.
+
+# Abaixo estão os modelos que serão implementados e testados:
+  
+# Modelo 1 -> Regressão Linear (Benchmark) - Utilizado como linha de base devido à sua simplicidade e eficácia em problemas de regressão. Este modelo ajudará a 
+#             estabelecer uma base para a performance que esperamos superar com técnicas mais complexas.
+
+# Modelo 2 -> Regressão Ridge - Um modelo de regressão que adiciona uma penalização L2 ao cálculo dos coeficientes, ajudando a reduzir o sobreajuste (overfitting) e
+#             melhorando a capacidade de generalização do modelo.
+
+#Modelo 3 -> Regressão LASSO - Um modelo de regressão que aplica uma penalização L1, forçando a soma dos valores absolutos dos coeficientes a serem menores que um 
+#            valor fixo. Isso pode resultar na eliminação de algumas variáveis irrelevantes, tornando o modelo mais interpretável e eficiente.
+
+# Cada modelo será treinado utilizando o mesmo conjunto de dados, permitindo uma comparação justa de sua eficácia. A avaliação de cada modelo incluirá métricas como 
+# erro médio absoluto (MAE), erro quadrático médio (MSE) e o coeficiente de determinação (R²), entre outras, dependendo das especificidades de nosso problema e dados.
 
 
+
+
+## Cria um dataframe para receber as métricas de cada modelo
+df_modelos <- data.frame()
+
+
+
+### Modelo 1 com Regressão Linear (Benchmark)
+
+## Versão 1
+
+# - Nesta versão, criamos e treinamos um modelo de Regressão Linear para prever o valor total gasto pelos clientes.
+# - Iremos avaliar o modelo usando várias métricas de desempenho, visualizamos os coeficientes das variáveis preditoras e realizamos a análise de resíduos para
+#   verificar o ajuste do modelo.
+# - As métricas de desempenho serão salvas em um dataframe para futura comparação com outros modelos.
+
+
+# Criação do modelo de Regressão Linear
+modelo_v1_RL <- train(valor_total_gasto ~ ., data = dados_treino, method = "lm")
+
+# Visualizando coeficientes das variáveis preditoras
+coeficientes <- summary(modelo_v1_RL$finalModel)$coefficients
+df_coef <- as.data.frame(coeficientes)
+colnames(df_coef) <- c("Coeficiente", "Erro Padrão", "Valor T", "P-valor")
+df_coef
+
+
+## Interpretação do resultado dos coeficientes das variáveis preditoras:
+
+# - Os coeficientes indicam a magnitude e a direção da influência de cada variável preditora no valor alvo (valor total gasto).
+#   Por exemplo:
+#      -> tempo_cadastro_cliente          : Cada ano adicional de cadastro aumenta o valor total gasto em média em 62.77 unidades.
+#      -> numero_medio_cliques_por_sessao : Cada clique adicional por sessão aumenta o valor total gasto em média em 25.85 unidades.
+#      -> tempo_total_logado_app          : Cada minuto adicional logado no app aumenta o valor total gasto em média em 38.69 unidades.
+#      -> tempo_total_logado_website      : Cada minuto adicional logado no website aumenta o valor total gasto em média em 0.47 unidades.
+
+# Assumindo que todas as outras variáveis permaneçam constantes.
+
+## Previsões
+
+# Previsões com dados de teste
+pred_v1 <- predict(modelo_v1_RL, dados_teste)
+
+# Imprime as 10 primeiras previsões
+print(pred_v1[1:10])
+
+# Plot das previsões vs valores reais
+ggplot() +
+  geom_point(aes(x = dados_teste$valor_total_gasto, y = pred_v1), color = 'skyblue') +
+  labs(x = 'Valor Real de Y', y = 'Valor Previsto de Y') +
+  theme_minimal()
+
+# A partir do gráfico de dispersão, podemos ver que há uma correlação muito forte entre os y's previstos e os y's reais nos dados do teste. 
+# Isso significa que temos um modelo muito bom.
+
+
+## Avaliação do Modelo
+
+# Métricas
+
+# Valor médio gasto pelos clientes
+valor_medio <- mean(df$valor_total_gasto)
+print(paste('Valor médio gasto pelos clientes:', valor_medio))
+
+# Valor mínimo
+valor_minimo <- min(df$valor_total_gasto)
+print(paste('Valor mínimo gasto pelos clientes:', valor_minimo))
+
+# Valor máximo
+valor_maximo <- max(df$valor_total_gasto)
+print(paste('Valor máximo gasto pelos clientes:', valor_maximo))
+
+# MAE - Erro Médio Absoluto
+mae <- MAE(pred_v1, dados_teste$valor_total_gasto)
+print(paste('MAE - Erro Médio Absoluto:', mae))
+
+# MSE - Erro Quadrático Médio
+mse <- mean((pred_v1 - dados_teste$valor_total_gasto)^2)
+print(paste('MSE - Erro Quadrático Médio:', mse))
+
+# RMSE - Raiz Quadrada do Erro Quadrático Médio
+rmse <- sqrt(mse)
+print(paste('RMSE - Raiz Quadrada do Erro Quadrático Médio:', rmse))
+
+
+# - O RMSE prevê que, em média, as previsões do nosso modelo (de valores gastos) estão erradas em aproximadamente 9.35, que é um valor pequeno comparado ao
+#   valor médio gasto por cliente.
+
+
+# Coeficiente R2
+r2 <- R2(pred_v1, dados_teste$valor_total_gasto)
+print(paste('Coeficiente R2:', r2))
+
+# Variância Explicada
+evs <- var(pred_v1) / var(dados_teste$valor_total_gasto)
+print(paste('Variância Explicada:', evs))
+
+
+# - O coeficiente R2 de aproximadamente 98.48% indica que nosso modelo de regressão linear é muito bom.
+#   Ele é capaz de explicar quase toda a variação nos dados.
+# - A variância explicada de 100.98% sugere que nosso modelo está superestimando a variância dos dados de teste, o que pode indicar um ligeiro overfitting.
+# - Apesar disso, o modelo mostra uma excelente performance na previsão dos valores gastos pelos clientes.
+#   Será que conseguimos melhorar essa performance com outros modelos?
+
+
+## Análise de Resíduos
+
+# Calculando os resíduos
+residuos <- dados_teste$valor_total_gasto - pred_v1
+
+# Plotando o histograma e a linha de densidade corretamente
+ggplot() +
+  geom_histogram(aes(x = residuos, y = after_stat(density)), bins = 40, fill = 'red', color = 'black', alpha = 0.7) +
+  geom_density(aes(x = residuos), color = 'blue', linewidth = 1) +
+  labs(x = 'Resíduos', y = 'Densidade') +
+  theme_minimal()
+
+
+# Os resíduos são aproximadamente normalmente distribuídos, o que indica um bom ajuste do modelo.
+
+
+## Salvando Dados do Modelo em um Dataframe
+
+# Salve as métricas em df_modelos
+df_modelos <- rbind(df_modelos, data.frame(
+  Nome_do_Modelo = 'Modelo 1 RL',
+  Nome_do_Algoritmo = 'Regressão Linear (Benchmark)',
+  MAE = mae,
+  MSE = mse,
+  RMSE = rmse,
+  Coeficiente_R2 = r2,
+  Variancia_Explicada = evs
+))
+
+# Visualizando Dataframe
+print(df_modelos)
+
+rm(modelo_v1_RL, coeficientes, df_coef, pred_v1, valor_minimo, valor_maximo, valor_medio, mae, mse, rmse, r2, evs, residuos)
