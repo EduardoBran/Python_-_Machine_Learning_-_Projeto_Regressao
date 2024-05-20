@@ -25,7 +25,7 @@ library(class)          # algortimo KNN
 library(rpart)          # algoritmo árvore de decisão (Decision Tree)
 library(rpart.plot)
 library(e1071)          # algoritmo SVM
-
+library(Metrics)
 
 
 
@@ -302,7 +302,7 @@ ggplot(data = df, aes(x = tempo_total_logado_app, y = tempo_total_logado_website
 
 # - A correlação entre tempo_total_logado_app e tempo_total_logado_website é muito baixa (coeficiente de correlação de 0.082388). Isso indica que o tempo que os
 #   clientes passam logados no app não está fortemente relacionado com o tempo que passam logados no website. Essa informação pode sugerir que os usuários tendem a
-#  utilizar um dos canais (app ou website) mais frequentemente do que o outro, sem uma relação significativa entre os tempos de uso.
+#   utilizar um dos canais (app ou website) mais frequentemente do que o outro, sem uma relação significativa entre os tempos de uso.
 
 
 
@@ -510,3 +510,141 @@ df_modelos <- rbind(df_modelos, data.frame(
 print(df_modelos)
 
 rm(modelo_v1_RL, coeficientes, df_coef, pred_v1, valor_minimo, valor_maximo, valor_medio, mae, mse, rmse, r2, evs, residuos)
+
+
+
+
+
+### Modelo 2 com Regressão Ridge
+
+## Versão 1
+
+# - Nesta versão, criamos e treinamos um modelo de Regressão Ridge para prever o valor total gasto pelos clientes.
+
+
+# Criar matriz de preditores e vetor de resposta
+X <- as.matrix(dados_treino[, -ncol(dados_treino)])
+y <- dados_treino$valor_total_gasto
+
+# Criação do modelo de Regressão Ridge usando glmnet
+modelo_v2_RR <- glmnet(X, y, alpha = 0)
+
+# Escolher o melhor lambda com validação cruzada
+cv_modelo_v2_RR <- cv.glmnet(X, y, alpha = 0)
+cv_modelo_v2_RR
+
+# Melhor lambda
+lambda_best <- cv_modelo_v2_RR$lambda.min
+lambda_best
+
+# Visualizando coeficientes das variáveis preditoras
+coeficientes <- coef(modelo_v2_RR, s = lambda_best)
+df_coef <- as.data.frame(as.matrix(coeficientes))
+colnames(df_coef) <- c("Coeficiente")
+print(df_coef)
+
+
+## Interpretação do resultado dos coeficientes das variáveis preditoras:
+
+# - Os coeficientes indicam a magnitude e a direção da influência de cada variável preditora no valor alvo (valor total gasto).
+#   Por exemplo:
+#      -> tempo_cadastro_cliente          : Cada ano adicional de cadastro aumenta o valor total gasto em média em 58.24 unidades.
+#      -> numero_medio_cliques_por_sessao : Cada clique adicional por sessão aumenta o valor total gasto em média em 24.00 unidades.
+#      -> tempo_total_logado_app          : Cada minuto adicional logado no app aumenta o valor total gasto em média em 35.91 unidades.
+#      -> tempo_total_logado_website      : Cada minuto adicional logado no website aumenta o valor total gasto em média em 0.63 unidades.
+
+# Assumindo que todas as outras variáveis permaneçam constantes.
+
+
+## Previsões
+
+# Previsões com dados de teste
+X_teste <- as.matrix(dados_teste[, -ncol(dados_teste)])
+pred_v2 <- predict(modelo_v2_RR, s = lambda_best, newx = X_teste)
+
+# Imprime as 10 primeiras previsões
+print(pred_v2[1:10])
+
+# Plot das previsões vs valores reais
+ggplot() +
+  geom_point(aes(x = dados_teste$valor_total_gasto, y = pred_v2), color = 'skyblue') +
+  labs(x = 'Valor Real de Y', y = 'Valor Previsto de Y') +
+  theme_minimal()
+
+# A partir do gráfico de dispersão, podemos ver que há uma correlação muito forte entre os y's previstos e os y's reais nos dados do teste. 
+# Isso significa que temos um modelo muito bom.
+
+
+## Avaliação do Modelo
+
+# Métricas
+
+# Valor médio gasto pelos clientes
+valor_medio <- mean(df$valor_total_gasto)
+print(paste('Valor médio gasto pelos clientes:', valor_medio))
+
+# Valor mínimo
+valor_minimo <- min(df$valor_total_gasto)
+print(paste('Valor mínimo gasto pelos clientes:', valor_minimo))
+
+# Valor máximo
+valor_maximo <- max(df$valor_total_gasto)
+print(paste('Valor máximo gasto pelos clientes:', valor_maximo))
+
+# MAE - Erro Médio Absoluto
+mae <- mean(abs(pred_v2 - dados_teste$valor_total_gasto))
+print(paste('MAE - Erro Médio Absoluto:', mae))
+
+# MSE - Erro Quadrático Médio
+mse <- mean((pred_v2 - dados_teste$valor_total_gasto)^2)
+print(paste('MSE - Erro Quadrático Médio:', mse))
+
+# RMSE - Raiz Quadrada do Erro Quadrático Médio
+rmse <- sqrt(mse)
+print(paste('RMSE - Raiz Quadrada do Erro Quadrático Médio:', rmse))
+
+# - O RMSE prevê que, em média, as previsões do nosso modelo (de valores gastos) estão erradas em aproximadamente 9.74, que é um valor pequeno comparado ao valor médio gasto por cliente.
+
+# Coeficiente R2
+r2 <- cor(pred_v2, dados_teste$valor_total_gasto)^2
+print(paste('Coeficiente R2:', r2))
+
+# Variância Explicada
+evs <- var(pred_v2) / var(dados_teste$valor_total_gasto)
+print(paste('Variância Explicada:', evs))
+
+# - O coeficiente R2 de aproximadamente 98.48% indica que nosso modelo de regressão Ridge é muito bom.
+#   Ele é capaz de explicar quase toda a variação nos dados.
+# - A variância explicada de 86.94% sugere que nosso modelo está estimando bem a variância dos dados de teste, mas não tão bem quanto o R2.
+# - O modelo mostra uma excelente performance na previsão dos valores gastos pelos clientes.
+#   Será que conseguimos melhorar essa performance com outros modelos?
+
+## Análise de Resíduos
+
+# Calculando os resíduos
+residuos <- dados_teste$valor_total_gasto - pred_v2
+
+# Plotando o histograma e a linha de densidade corretamente
+ggplot() +
+  geom_histogram(aes(x = residuos, y = after_stat(density)), bins = 40, fill = 'red', color = 'black', alpha = 0.7) +
+  geom_density(aes(x = residuos), color = 'blue', linewidth = 1) +
+  labs(x = 'Resíduos', y = 'Densidade') +
+  theme_minimal()
+
+# Os resíduos são aproximadamente normalmente distribuídos, o que indica um bom ajuste do modelo.
+
+## Salvando Dados do Modelo em um Dataframe
+
+# Salve as métricas em df_modelos
+modelo_v2 <- setNames(data.frame(
+  'Modelo 2 RR', 'Regressão Ridge', mae, mse, rmse, r2, evs
+), names(df_modelos))
+
+# Adicionando o novo dataframe ao dataframe existente
+df_modelos <- rbind(df_modelos, modelo_v2)
+
+# Visualizando o dataframe resultante
+print(df_modelos)
+
+rm(modelo_v2_RR, coeficientes, df_coef, pred_v2, valor_minimo, valor_maximo, valor_medio, mae, mse, rmse, r2, evs, residuos, X, y, X_teste,
+   cv_modelo_v2_RR, lambda_best, modelo_v2)
