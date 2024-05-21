@@ -603,7 +603,8 @@ print(paste('MSE - Erro Quadrático Médio:', mse))
 rmse <- sqrt(mse)
 print(paste('RMSE - Raiz Quadrada do Erro Quadrático Médio:', rmse))
 
-# - O RMSE prevê que, em média, as previsões do nosso modelo (de valores gastos) estão erradas em aproximadamente 9.74, que é um valor pequeno comparado ao valor médio gasto por cliente.
+# - O RMSE prevê que, em média, as previsões do nosso modelo (de valores gastos) estão erradas em aproximadamente 9.74, que é um valor pequeno comparado ao
+#   valor médio gasto por cliente.
 
 # Coeficiente R2
 r2 <- cor(pred_v2, dados_teste$valor_total_gasto)^2
@@ -648,3 +649,140 @@ print(df_modelos)
 
 rm(modelo_v2_RR, coeficientes, df_coef, pred_v2, valor_minimo, valor_maximo, valor_medio, mae, mse, rmse, r2, evs, residuos, X, y, X_teste,
    cv_modelo_v2_RR, lambda_best, modelo_v2)
+
+
+
+
+
+### Modelo 3 com Regressão Lasso
+
+
+
+
+# Criação e Treinamento do Modelo
+
+# Criar matriz de preditores e vetor de resposta
+X <- as.matrix(dados_treino[, -ncol(dados_treino)])
+y <- dados_treino$valor_total_gasto
+
+# Criação do modelo de Regressão Lasso usando glmnet
+modelo_v3_LA <- glmnet(X, y, alpha = 1)
+
+# Escolher o melhor lambda com validação cruzada
+cv_modelo_v3_LA <- cv.glmnet(X, y, alpha = 1)
+print(cv_modelo_v3_LA)
+
+# Melhor lambda
+lambda_best <- cv_modelo_v3_LA$lambda.min
+print(lambda_best)
+
+# Visualizando coeficientes das variáveis preditoras
+coeficientes <- coef(modelo_v3_LA, s = lambda_best)
+df_coef <- as.data.frame(as.matrix(coeficientes))
+colnames(df_coef) <- c("Coeficiente")
+print(df_coef)
+
+## Interpretação do resultado dos coeficientes das variáveis preditoras:
+
+# - Os coeficientes indicam a magnitude e a direção da influência de cada variável preditora no valor alvo (valor total gasto).
+#   Por exemplo:
+#      -> tempo_cadastro_cliente          : Cada ano adicional de cadastro aumenta o valor total gasto em média em 62.86 unidades.
+#      -> numero_medio_cliques_por_sessao : Cada clique adicional por sessão aumenta o valor total gasto em média em 25.18 unidades.
+#      -> tempo_total_logado_app          : Cada minuto adicional logado no app aumenta o valor total gasto em média em 37.62 unidades.
+#      -> tempo_total_logado_website      : Cada minuto adicional logado no website aumenta o valor total gasto em média em 0 unidade.
+# Assumindo que todas as outras variáveis permaneçam constantes.
+
+## Previsões
+
+# Previsões com dados de teste
+X_teste <- as.matrix(dados_teste[, -ncol(dados_teste)])
+pred_v3 <- predict(modelo_v3_LA, s = lambda_best, newx = X_teste)
+
+# Imprime as 10 primeiras previsões
+print(pred_v3[1:10])
+
+# Plot das previsões vs valores reais
+ggplot() +
+  geom_point(aes(x = dados_teste$valor_total_gasto, y = pred_v3), color = 'green') +
+  labs(x = 'Valor Real de Y', y = 'Valor Previsto de Y') +
+  theme_minimal()
+
+# A partir do gráfico de dispersão, podemos ver que há uma correlação muito forte entre os y's previstos e os y's reais nos dados do teste. 
+# Isso significa que temos um modelo muito bom.
+
+## Avaliação do Modelo
+
+# Métricas
+
+# Valor médio gasto pelos clientes
+valor_medio <- mean(df$valor_total_gasto)
+print(paste('Valor médio gasto pelos clientes:', valor_medio))
+
+# Valor mínimo
+valor_minimo <- min(df$valor_total_gasto)
+print(paste('Valor mínimo gasto pelos clientes:', valor_minimo))
+
+# Valor máximo
+valor_maximo <- max(df$valor_total_gasto)
+print(paste('Valor máximo gasto pelos clientes:', valor_maximo))
+
+# MAE - Erro Médio Absoluto
+mae <- mean(abs(pred_v3 - dados_teste$valor_total_gasto))
+print(paste('MAE - Erro Médio Absoluto:', mae))
+
+# MSE - Erro Quadrático Médio
+mse <- mean((pred_v3 - dados_teste$valor_total_gasto)^2)
+print(paste('MSE - Erro Quadrático Médio:', mse))
+
+# RMSE - Raiz Quadrada do Erro Quadrático Médio
+rmse <- sqrt(mse)
+print(paste('RMSE - Raiz Quadrada do Erro Quadrático Médio:', rmse))
+
+# Coeficiente R2
+r2 <- cor(pred_v3, dados_teste$valor_total_gasto)^2
+print(paste('Coeficiente R2:', r2))
+
+# Variância Explicada
+evs <- var(pred_v3) / var(dados_teste$valor_total_gasto)
+print(paste('Variância Explicada:', evs))
+
+# - O coeficiente R2 de aproximadamente 98.11% indica que nosso modelo de regressão Lasso é muito bom.
+#   Ele é capaz de explicar quase toda a variação nos dados.
+# - A variância explicada de 98.16% sugere que nosso modelo está estimando bem a variância dos dados de teste.
+# - O modelo mostra uma excelente performance na previsão dos valores gastos pelos clientes.
+#   Será que conseguimos melhorar essa performance com outros modelos?
+
+## Análise de Resíduos
+
+# Calculando os resíduos
+residuos <- dados_teste$valor_total_gasto - pred_v3
+
+# Plotando o histograma e a linha de densidade corretamente
+ggplot() +
+  geom_histogram(aes(x = residuos, y = after_stat(density)), bins = 40, fill = 'red', color = 'black', alpha = 0.7) +
+  geom_density(aes(x = residuos), color = 'blue', linewidth = 1) +
+  labs(x = 'Resíduos', y = 'Densidade') +
+  theme_minimal()
+
+# Os resíduos são aproximadamente normalmente distribuídos, o que indica um bom ajuste do modelo.
+
+## Salvando Dados do Modelo em um Dataframe
+
+# Salve as métricas em df_modelos
+modelo_v3 <- setNames(data.frame(
+  'Modelo 3 LA', 'Regressão Lasso', mae, mse, rmse, r2, evs
+), names(df_modelos))
+
+# Adicionando o novo dataframe ao dataframe existente
+df_modelos <- rbind(df_modelos, modelo_v3)
+
+# Visualizando o dataframe resultante
+print(df_modelos)
+
+rm(modelo_v3_LA, coeficientes, df_coef, pred_v3, valor_minimo, valor_maximo, valor_medio, mae, mse, rmse, r2, evs, residuos, X, y, X_teste,
+   cv_modelo_v3_LA, lambda_best, modelo_v3)
+
+
+
+#### Seleção do Melhor Modelo
+
