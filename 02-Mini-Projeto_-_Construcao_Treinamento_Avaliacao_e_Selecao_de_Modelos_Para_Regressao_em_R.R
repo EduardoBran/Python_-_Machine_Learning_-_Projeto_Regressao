@@ -656,7 +656,9 @@ rm(modelo_v2_RR, coeficientes, df_coef, pred_v2, valor_minimo, valor_maximo, val
 
 ### Modelo 3 com Regressão Lasso
 
+## Versão 1
 
+# - Nesta versão, criamos e treinamos um modelo de Regressão Lasso para prever o valor total gasto pelos clientes.
 
 
 # Criação e Treinamento do Modelo
@@ -785,4 +787,84 @@ rm(modelo_v3_LA, coeficientes, df_coef, pred_v3, valor_minimo, valor_maximo, val
 
 
 #### Seleção do Melhor Modelo
+
+# Visualizando Modelos
+df_modelos
+
+# Seleção do Melhor Modelo (criterio: menor valor de RMSE)
+melhor_modelo <- df_modelos[which.min(df_modelos$RMSE),]
+
+# Exibindo o melhor modelo
+print(melhor_modelo)
+
+
+## Explicação da Escolha do Melhor Modelo
+
+# - O Modelo 2 apresentou uma taxa de erro (RMSE) levemente maior e pode ser descartado.
+# - A análise comparativa dos modelos de regressão nos mostrou que o Modelo 3 - Regressão Lasso teve o menor RMSE (9.313104), indicando que ele é ligeiramente
+#   melhor que os outros modelos em termos de previsão.
+# - No entanto, considerando a simplicidade e a performance praticamente equivalente, optamos pelo Modelo 1 - Regressão Linear como o melhor modelo, devido à
+#   sua simplicidade e facilidade de interpretação.
+
+#  -> Com base nas explicações acima, nós iremos escolher o Modelo 1 RL.
+
+
+# Criação do modelo de Regressão Linear
+modelo_v1_RL <- train(valor_total_gasto ~ ., data = dados_treino, method = "lm")
+
+# Visualizando coeficientes das variáveis preditoras
+coeficientes <- summary(modelo_v1_RL$finalModel)$coefficients
+df_coef <- as.data.frame(coeficientes)
+colnames(df_coef) <- c("Coeficiente", "Erro Padrão", "Valor T", "P-valor")
+df_coef
+
+
+## Interpretação do resultado dos coeficientes das variáveis preditoras:
+
+# - Os coeficientes indicam a magnitude e a direção da influência de cada variável preditora no valor alvo (valor total gasto).
+#   Por exemplo:
+#      -> tempo_cadastro_cliente          : Cada ano adicional de cadastro aumenta o valor total gasto em média em 62.77 unidades.
+#      -> numero_medio_cliques_por_sessao : Cada clique adicional por sessão aumenta o valor total gasto em média em 25.85 unidades.
+#      -> tempo_total_logado_app          : Cada minuto adicional logado no app aumenta o valor total gasto em média em 38.69 unidades.
+#      -> tempo_total_logado_website      : Cada minuto adicional logado no website aumenta o valor total gasto em média em 0.47 unidades.
+
+# Assumindo que todas as outras variáveis permaneçam constantes.
+
+rm(melhor_modelo, modelo_v1_RL, coeficientes, df_coef)
+
+
+
+
+#### Respondendo Problema de Negócio
+
+## Com base nos coeficientes do melhor modelo de regressão, podemos inferir que:
+  
+# - Tempo Logado no App: O tempo logado no app tem a maior influência positiva no valor total gasto pelo cliente. Cada minuto adicional logado no app resulta em
+#   um aumento médio de 38.57 unidades no valor total gasto. Portanto, investir em melhorias no app para aumentar o tempo logado dos clientes pode ser uma
+#   estratégia eficaz para aumentar as vendas.
+
+# - Número Médio de Cliques por Sessão: A segunda maior influência positiva é o número médio de cliques por sessão. Cada clique adicional por sessão aumenta o
+#   valor total gasto em média em 26.24 unidades. Isso sugere que melhorar a usabilidade e a experiência do usuário para facilitar a navegação e incentivar
+#   cliques pode também aumentar as vendas.
+
+# - Tempo Logado no Website: Embora tenha uma influência positiva, o impacto do tempo logado no website é muito menor (0.68 unidades por minuto logado).
+#   Isso indica que, em comparação ao app, o website tem uma influência significativamente menor no valor total gasto pelos clientes.
+
+# - Tempo de Cadastro do Cliente: Clientes com mais tempo de cadastro tendem a gastar mais, com cada ano adicional de cadastro aumentando o valor total gasto
+#   em 63.74 unidades. Isso pode indicar a importância de manter clientes a longo prazo e a eficácia de estratégias de fidelização.
+
+
+
+
+#### Recomendação:
+
+## Dado que o tempo logado no app tem o maior impacto no valor total gasto pelo cliente, a empresa deve considerar investir em melhorias no aplicativo, como:
+  
+#  -> Melhorar a usabilidade e a interface do app para tornar a experiência do usuário mais intuitiva e agradável.
+#  -> Adicionar funcionalidades que incentivem os usuários a passar mais tempo no app.
+#  -> Implementar estratégias de engajamento, como notificações push personalizadas, para manter os usuários ativos no app.
+#  -> Analisar e otimizar o conteúdo e as ofertas disponíveis no app para maximizar a interação e o engajamento do usuário.
+
+# Ao focar nessas áreas, a empresa pode aumentar o tempo logado dos clientes no app, o que, por sua vez, deverá aumentar o valor total gasto e, consequentemente,
+# as vendas.
 
